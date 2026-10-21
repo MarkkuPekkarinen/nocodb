@@ -87,12 +87,16 @@ export const ReloadViewDataHookInj: InjectionKey<
     rowId?: string
     path?: Array<number>
     skipLoadingRowId?: string
+    /** Canvas grid: refetch what's loaded without the loader; other views reload as usual */
+    inPlace?: boolean
+    fieldAdd?: boolean
   } | void>
 > = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
 export const ReloadVisibleDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-visible-data-injection')
-export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
-  Symbol('reload-row-data-injection')
+export const ReloadRowDataHookInj: InjectionKey<
+  EventHook<{ shouldShowLoading?: boolean; offset?: number; inPlace?: boolean } | void>
+> = Symbol('reload-row-data-injection')
 export const ReloadAggregateHookInj: InjectionKey<
   EventHook<
     | {
@@ -220,6 +224,13 @@ export const WorkflowComposeModeInj: InjectionKey<Ref<boolean>> = Symbol('workfl
 /** Compose-modal drop target; the attachments input registers its upload here while mounted. */
 export const WorkflowComposeDropInj: InjectionKey<Ref<((files: File[]) => void) | null>> = Symbol('workflow-compose-drop')
 
+/**
+ * Compose-modal drop target for the body editor: it takes the dropped files it can show inline
+ * (inserted at `point` when that is over the body) and returns the rest for the attachments input.
+ */
+export const WorkflowComposeImageDropInj: InjectionKey<Ref<((files: File[], point: { x: number; y: number }) => File[]) | null>> =
+  Symbol('workflow-compose-image-drop')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]
@@ -337,6 +348,25 @@ export interface LinkRecordExpandApi {
 }
 
 export const LinkRecordExpandInj: InjectionKey<Ref<LinkRecordExpandApi | null>> = Symbol('link-record-expand')
+
+/**
+ * Link picker "New record" — the field's "Add records through a form". Provided
+ * by the interface hosts (EE), which resolve the bound create form; absent =
+ * no affordance (the CE default, where the picker's own expanded-form create applies).
+ */
+export interface LinkRecordCreateApi {
+  /** See `LinkRecordExpandApi.isEnabled` for `elementId`. */
+  isEnabled: (column: ColumnType, elementId?: string) => boolean
+  /** Open the bound create form; its submit creates the record and links it to `rowId`. */
+  create: (params: {
+    column: ColumnType
+    rowId: string
+    elementId?: string
+    onCreated?: (row: Record<string, any>) => void
+  }) => void
+}
+
+export const LinkRecordCreateInj: InjectionKey<Ref<LinkRecordCreateApi | null>> = Symbol('link-record-create')
 
 /**
  * Element addressing for LTAR picker calls made from inside a record-form

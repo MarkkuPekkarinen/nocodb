@@ -34,6 +34,7 @@ import {
   COLUMN_HEADER_HEIGHT_IN_PX,
   EDIT_INTERACTABLE,
   FROZEN_AREA_MAX_WIDTH_RATIO,
+  MOBILE_ROW_META_COLUMN_WIDTH,
   ROW_COLOR_BORDER_WIDTH,
   ROW_META_COLUMN_WIDTH,
 } from '../utils/constants'
@@ -155,14 +156,14 @@ export function useCanvasTable({
     insertRows: Row[],
     updateRows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     newColumns?: Partial<ColumnType>[],
     path?: Array<number>,
   ) => Promise<Record<string, any>[] | void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; skipRefresh?: boolean },
     path?: Array<number>,
   ) => Promise<void>
   addEmptyRow: (
@@ -292,7 +293,9 @@ export function useCanvasTable({
   const { basesUser } = storeToRefs(useBases())
 
   const rowMetaColumnWidth = computed<number>(() => {
-    return !blockRowColoring.value ? ROW_META_COLUMN_WIDTH + ROW_COLOR_BORDER_WIDTH + 4 : ROW_META_COLUMN_WIDTH
+    // Phones show only the row number here (no checkbox, drag handle or comment bubble)
+    const baseWidth = isMobileMode.value ? MOBILE_ROW_META_COLUMN_WIDTH : ROW_META_COLUMN_WIDTH
+    return !blockRowColoring.value ? baseWidth + ROW_COLOR_BORDER_WIDTH + 4 : baseWidth
   })
 
   const rowColouringBorderWidth = computed<number>(() => {
@@ -1606,7 +1609,7 @@ export function useCanvasTable({
       if (!ctx.updatedColumnTitle && isVirtualCol(columnObj)) {
         // Reload view data if it is self link column
         if (columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id) {
-          reloadViewDataHook?.trigger({ shouldShowLoading: false })
+          reloadViewDataHook?.trigger({ inPlace: true })
         }
         triggerRefreshCanvas()
         return

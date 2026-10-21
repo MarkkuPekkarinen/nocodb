@@ -100,6 +100,8 @@ const {
   clearGroupCache,
   toggleExpandAll,
   groupDataCache,
+  refreshInPlace,
+  refreshLoadedRows,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 // SmartText panel row navigation contract.
@@ -538,11 +540,12 @@ const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
-const smartsheetEvents = (event: SmartsheetStoreEvents, payload?: { tableId?: string }) => {
+const smartsheetEvents = (event: SmartsheetStoreEvents, payload?: { tableId?: string; inPlace?: boolean }) => {
   if (!isTableEventForMeta(payload, meta.value, metas.value)) return
 
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
+    if (payload?.inPlace) refreshInPlace()
+    else reloadViewDataHook?.trigger()
   }
 }
 
@@ -960,6 +963,8 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :fetch-missing-group-aggregations="fetchMissingGroupAggregations"
         :is-bulk-operation-in-progress="isBulkOperationInProgress"
         :toggle-expand-all="toggleExpandAll"
+        :refresh-in-place="refreshInPlace"
+        :refresh-loaded-rows="refreshLoadedRows"
         @bulk-update-dlg="bulkUpdateTrigger"
       />
 

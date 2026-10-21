@@ -31,7 +31,11 @@ const { showInfoModal } = useNcConfirmModal()
 
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
+const {
+  removeCollaborator: _removeCollaborator,
+  updateCollaborator: _updateCollaborator,
+  resendCollaboratorInvite,
+} = workspaceStore
 
 const {
   collaborators,
@@ -920,6 +924,14 @@ watch(inviteDlg, (newVal) => {
                         <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                         {{ $t('general.edit') }}
                       </NcMenuItem>
+                      <NcMenuItem
+                        v-if="isOwnerOrCreator && record.invite_pending"
+                        data-testid="nc-workspace-member-resend-invite"
+                        @click="resendCollaboratorInvite(record.id, currentWorkspace?.id)"
+                      >
+                        <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                        {{ $t('activity.resendInvite') }}
+                      </NcMenuItem>
                       <template v-if="isAdminPanel && !record.isTeam">
                         <NcMenuItem data-testid="nc-admin-org-user-delete">
                           <GeneralIcon icon="signout" />
@@ -971,14 +983,22 @@ watch(inviteDlg, (newVal) => {
           </template>
 
           <template #extraRow>
-            <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+            <!-- Sticky + capped on phones: the table scrolls sideways and would carry the panel off-screen -->
+            <div
+              v-if="collaborators?.length === 1"
+              class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center xs:(sticky left-0 max-w-[calc(100vw-2.5rem)])"
+            >
               <div class="text-2xl text-nc-content-gray font-bold">
                 {{ $t('placeholder.inviteYourTeam') }}
               </div>
               <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
-              <img src="~assets/img/placeholder/invite-team.png" :alt="$t('activity.inviteTeam')" class="!w-[30rem] flex-none" />
+              <img
+                src="~assets/img/placeholder/invite-team.png"
+                :alt="$t('activity.inviteTeam')"
+                class="!w-[30rem] max-w-full flex-none"
+              />
             </div>
           </template>
         </NcTable>

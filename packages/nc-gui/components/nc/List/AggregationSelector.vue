@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CommonAggregations, UITypes, getAvailableAggregations } from 'nocodb-sdk'
+import { CommonAggregations, UITypes, getAvailableAggregations, getRollupResultUidt } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
@@ -71,7 +71,7 @@ const loadAggregationList = async () => {
     if (columnMeta.uidt === UITypes.Formula && columnMeta.colOptions && 'parsed_tree' in columnMeta.colOptions) {
       availableAggregations = getAvailableAggregations(columnMeta.uidt, (columnMeta.colOptions as any).parsed_tree)
     } else {
-      availableAggregations = getAvailableAggregations(columnMeta.uidt!)
+      availableAggregations = getAvailableAggregations(columnMeta.uidt!, undefined, getRollupResultUidt(columnMeta))
     }
 
     // Filter out None aggregation
@@ -180,7 +180,9 @@ defineExpose({
           >
             {{ selectedAggregation?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select aggregation --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">{{
+            $t('placeholder.selectAggregationDashed')
+          }}</span>
 
           <template #title>
             {{ selectedAggregation?.label || 'Select aggregation' }}

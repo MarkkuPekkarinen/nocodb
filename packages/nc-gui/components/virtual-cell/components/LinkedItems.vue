@@ -286,12 +286,12 @@ const onCreatedRecord = async (record: any) => {
     return
   }
 
-  reloadTrigger?.trigger({
-    shouldShowLoading: false,
-  })
+  // The grid provides one hook for both; a grid cell's SmartsheetRow hook forwards to it
+  if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false, inPlace: true })
 
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
+    inPlace: true,
     isFromLinkRecord: true,
     relatedTableMetaId: relatedTableMeta.value.id,
     rowId: rowId.value!,
@@ -561,7 +561,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
             ref="filterQueryRef"
             v-model:value="childrenListPagination.query"
             :bordered="false"
-            placeholder="Search linked records..."
+            :placeholder="$t('placeholder.searchLinkedRecords')"
             class="w-full min-h-4 !pl-0"
             size="small"
             autocomplete="off"
@@ -775,6 +775,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               </NcButton>
             </template>
           </PermissionsTooltip>
+          <LazyVirtualCellComponentsLinkRecordCreateButton v-if="!readOnly" @opened="vModel = false" />
           <NcButton
             v-if="
               !readOnly &&

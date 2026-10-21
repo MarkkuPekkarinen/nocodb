@@ -319,11 +319,12 @@ const onCreatedRecord = (record: any) => {
 
   addLTARRef(record, injectedColumn?.value as ColumnType)
 
-  reloadTrigger?.trigger({
-    shouldShowLoading: false,
-  })
+  // The grid provides one hook for both; a grid cell's SmartsheetRow hook forwards to it
+  if (reloadTrigger !== reloadViewDataTrigger) reloadTrigger?.trigger({ shouldShowLoading: false, inPlace: true })
+
   reloadViewDataTrigger?.trigger({
     shouldShowLoading: false,
+    inPlace: true,
     isFromLinkRecord: true,
     relatedTableMetaId: relatedTableMeta.value.id,
     rowId: rowId.value!,
@@ -519,7 +520,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               ref="filterQueryRef"
               v-model:value="childrenExcludedListPagination.query"
               :bordered="false"
-              placeholder="Search records to link..."
+              :placeholder="$t('placeholder.searchRecordsToLink')"
               class="w-full nc-excluded-search min-h-4 !pl-0"
               size="small"
               autocomplete="off"
@@ -681,6 +682,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 </NcButton>
               </template>
             </PermissionsTooltip>
+            <LazyVirtualCellComponentsLinkRecordCreateButton @opened="vModel = false" />
           </div>
         </div>
       </div>
@@ -714,6 +716,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
               </NcButton>
             </template>
           </PermissionsTooltip>
+          <LazyVirtualCellComponentsLinkRecordCreateButton @opened="vModel = false" />
         </div>
         <div v-if="excludedTotalRows > 0" class="text-nc-content-gray-muted text-small">
           {{ excludedTotalRows }} {{ excludedTotalRows === 1 ? 'record' : 'records' }}
